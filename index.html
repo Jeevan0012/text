@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hospital Management System</title>
+    <script src="https://cdn.jsdelivr.net/npm/web3/dist/web3.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="container mt-4">
+    <h2 class="text-center mb-4">Hospital Management System</h2>
+
+    <div class="row">
+        <div class="col-md-6">
+            <h3>Add Doctor</h3>
+            <input type="text" id="doctorName" class="form-control mb-2" placeholder="Doctor Name">
+            <input type="text" id="doctorSpecialization" class="form-control mb-2" placeholder="Specialization">
+            <button class="btn btn-primary" onclick="addDoctor()">Add Doctor</button>
+        </div>
+        <div class="col-md-6">
+            <h3>All Doctors</h3>
+            <button class="btn btn-secondary mb-2" onclick="getAllDoctors()">Fetch Doctors</button>
+            <ul id="doctorList" class="list-group"></ul>
+        </div>
+    </div>
+
+    <hr>
+
+    <div class="row">
+        <div class="col-md-6">
+            <h3>Add Patient</h3>
+            <input type="text" id="patientName" class="form-control mb-2" placeholder="Patient Name">
+            <input type="number" id="patientAge" class="form-control mb-2" placeholder="Age">
+            <button class="btn btn-primary" onclick="addPatient()">Add Patient</button>
+        </div>
+        <div class="col-md-6">
+            <h3>All Patients</h3>
+            <button class="btn btn-secondary mb-2" onclick="getAllPatients()">Fetch Patients</button>
+            <ul id="patientList" class="list-group"></ul>
+        </div>
+    </div>
+
+    <hr>
+
+    <h3>Assign Doctor to Patient</h3>
+    <input type="number" id="assignPatientId" class="form-control mb-2" placeholder="Patient ID">
+    <input type="number" id="assignDoctorId" class="form-control mb-2" placeholder="Doctor ID">
+    <input type="text" id="comment" class="form-control mb-2" placeholder="Comment">
+    <button class="btn btn-success" onclick="assignDoctorToPatient()">Assign</button>
+
+    <hr>
+
+    <h3>Get Patient History</h3>
+    <input type="number" id="historyPatientId" class="form-control mb-2" placeholder="Patient ID">
+    <button class="btn btn-info" onclick="getPatientHistory()">Fetch History</button>
+    <ul id="historyList" class="list-group mt-2"></ul>
+
+    <script>
+        let contract;
+        let account;
+
+        async function loadWeb3() {
+            if (window.ethereum) {
+                window.web3 = new Web3(window.ethereum);
+                await window.ethereum.request({ method: 'eth_requestAccounts' });
+                const accounts = await web3.eth.getAccounts();
+                account = accounts[0];
+                contract = new web3.eth.Contract(
+                  [
+    {
+      "inputs": [],
+      "stateMutability": "nonpayable",
+      "type": "constructor"
+    },
+    {
+      "inputs": [],
+      "name": "doctorCount",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function",
+      "constant": true
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "name": "doctors",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "id",
+          "type": "uint256"
+        },
+        {
+          "internalType": "string",
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "internalType": "string",
+          "name": "specialization",
+          "type": "string"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function",
+      "constant": true
+    },
+    {
+      "inputs": [],
+      "name": "owner",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function",
+      "constant": true
+    },
+    {
+      "inputs": [],
+      "name": "patientCount",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function",
+      "constant": true
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "name": "patientHistory",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "doctorId",
+          "type": "uint256"
+        },
+        {
+          "internalType": "string",
+          "name": "comment",
+          "type": "string"
+        },
+        {
+          "internalType": "uint256",
+          "name": "timestamp",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function",
+      "constant": true
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "name": "patients",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "id",
+          "type": "uint256"
+        },
+        {
+          "internalType": "string",
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "internalType": "uint256",
+          "name": "age",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function",
+      "constant": true
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "string",
+          "name": "_name",
+          "type": "string"
+        },
+        {
+          "internalType": "string",
+          "name": "_specialization",
+          "type": "string"
+        }
+      ],
+      "name": "addDoctor",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "getAllDoctors",
+      "outputs": [
+        {
+          "components": [
+            {
+              "internalType": "uint256",
+              "name": "id",
+              "type": "uint256"
+            },
+            {
+              "internalType": "string",
+              "name": "name",
+              "type": "string"
+            },
+            {
+              "internalType": "string",
+              "name": "specialization",
+              "type": "string"
+            }
+          ],
+          "internalType": "struct HospitalManagement.Doctor[]",
+          "name": "",
+          "type": "tuple[]"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function",
+      "constant": true
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "string",
+          "name": "_name",
+          "type": "string"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_age",
+          "type": "uint256"
+        }
+      ],
+      "name": "addPatient",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "getAllPatients",
+      "outputs": [
+        {
+          "components": [
+            {
+              "internalType": "uint256",
+              "name": "id",
+              "type": "uint256"
+            },
+            {
+              "internalType": "string",
+              "name": "name",
+              "type": "string"
+            },
+            {
+              "internalType": "uint256",
+              "name": "age",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256[]",
+              "name": "assignedDoctors",
+              "type": "uint256[]"
+            }
+          ],
+          "internalType": "struct HospitalManagement.Patient[]",
+          "name": "",
+          "type": "tuple[]"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function",
+      "constant": true
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_patientId",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_doctorId",
+          "type": "uint256"
+        },
+        {
+          "internalType": "string",
+          "name": "_comment",
+          "type": "string"
+        }
+      ],
+      "name": "assignDoctorToPatient",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_patientId",
+          "type": "uint256"
+        }
+      ],
+      "name": "getPatientHistory",
+      "outputs": [
+        {
+          "components": [
+            {
+              "internalType": "uint256",
+              "name": "doctorId",
+              "type": "uint256"
+            },
+            {
+              "internalType": "string",
+              "name": "comment",
+              "type": "string"
+            },
+            {
+              "internalType": "uint256",
+              "name": "timestamp",
+              "type": "uint256"
+            }
+          ],
+          "internalType": "struct HospitalManagement.History[]",
+          "name": "",
+          "type": "tuple[]"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function",
+      "constant": true
+    }
+  ],
+                    "0x059FBa9018F7722C3129ACea713929E61D027193"
+                );
+            } else {
+                alert("Please install Metamask!");
+            }
+        }
+
+        async function addDoctor() {
+            try {
+                const name = document.getElementById("doctorName").value;
+                const specialization = document.getElementById("doctorSpecialization").value;
+                await contract.methods.addDoctor(name, specialization).send({ from: account });
+                alert("Doctor added successfully!");
+            } catch (error) {
+                console.error(error);
+                alert("Error adding doctor.");
+            }
+        }
+
+        async function getAllDoctors() {
+            try {
+                const doctors = await contract.methods.getAllDoctors().call();
+                let list = document.getElementById("doctorList");
+                list.innerHTML = "";
+                doctors.forEach(doc => {
+                    let li = document.createElement("li");
+                    li.className = "list-group-item";
+                    li.textContent = `ID: ${doc.id}, Name: ${doc.name}, Specialization: ${doc.specialization}`;
+                    list.appendChild(li);
+                });
+            } catch (error) {
+                console.error(error);
+                alert("Error fetching doctors.");
+            }
+        }
+
+        async function addPatient() {
+            try {
+                const name = document.getElementById("patientName").value;
+                const age = document.getElementById("patientAge").value;
+                await contract.methods.addPatient(name, age).send({ from: account });
+                alert("Patient added successfully!");
+            } catch (error) {
+                console.error(error);
+                alert("Error adding patient.");
+            }
+        }
+
+        async function getAllPatients() {
+            try {
+                const patients = await contract.methods.getAllPatients().call();
+                let list = document.getElementById("patientList");
+                list.innerHTML = "";
+                patients.forEach(patient => {
+                    let li = document.createElement("li");
+                    li.className = "list-group-item";
+                    li.textContent = `ID: ${patient.id}, Name: ${patient.name}, Age: ${patient.age}`;
+                    list.appendChild(li);
+                });
+            } catch (error) {
+                console.error(error);
+                alert("Error fetching patients.");
+            }
+        }
+
+        async function assignDoctorToPatient() {
+            try {
+                const patientId = document.getElementById("assignPatientId").value;
+                const doctorId = document.getElementById("assignDoctorId").value;
+                const comment = document.getElementById("comment").value;
+                await contract.methods.assignDoctorToPatient(patientId, doctorId, comment).send({ from: account });
+                alert("Doctor assigned successfully!");
+            } catch (error) {
+                console.error(error);
+                alert("Error assigning doctor.");
+            }
+        }
+
+        async function getPatientHistory() {
+            try {
+                const patientId = document.getElementById("historyPatientId").value;
+                const history = await contract.methods.getPatientHistory(patientId).call();
+                let list = document.getElementById("historyList");
+                list.innerHTML = "";
+                history.forEach(entry => {
+                    let li = document.createElement("li");
+                    li.className = "list-group-item";
+                    li.textContent = `Doctor ID: ${entry.doctorId}, Comment: ${entry.comment}, Timestamp: ${new Date(Number(entry.timestamp) * 1000).toLocaleString()}`;
+                    list.appendChild(li);
+                });
+            } catch (error) {
+                console.error(error);
+                alert("Error fetching history.");
+            }
+        }
+
+        loadWeb3();
+    </script>
+</body>
+</html>
